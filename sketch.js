@@ -1,146 +1,199 @@
-var PLAY=1
-var END=0
-var gameState=1
+var PLAY=1;
+var END=0;
+var gameState = PLAY;
 
-
-var path,boy,cash,diamonds,jwellery,sword;
-var pathImg,boyImg,cashImg,diamondsImg,jwelleryImg,swordImg;
-var treasureCollection = 0;
-var cashG,diamondsG,jwelleryG,swordGroup;
+var track,trackImg,player,playerImg,maska,maskImg;
+var glovesa,glovesImg,handwas,handwasImg,virus19,virusImg;
+var board,gameOver,gameOverImg,pointa;
+var score = 0;
 
 function preload(){
-  pathImg = loadImage("Road.png");
-  boyImg = loadAnimation("runner1.png","runner2.png");
-  cashImg = loadImage("cash.png");
-  diamondsImg = loadImage("diamonds.png");
-  jwelleryImg = loadImage("jwell.png");
-  swordImg = loadImage("sword.png");
-  endImg =loadAnimation("gameOver.png");
+
+  trackImg = loadImage("track.png");
+  playerImg = loadImage("player.png")
+  maskImg = loadImage("mask.png");
+  glovesImg = loadImage("gloves.png");
+  handwasImg = loadImage("handwas.png");
+  virusImg = loadImage("virus.png");
+  gameOverImg = loadImage("gameover.png");
+  restartImg = loadImage("restart.png");
+  
+   pointa = loadSound("point.'mp3'.wav");
+  gameoverSound = loadSound("gameOver.wav")
+  
 }
 
-function setup(){
+function setup() {
+  createCanvas(600, 400);
   
-  createCanvas(400,400);
-// Moving background
-path=createSprite(200,200);
-path.addImage(pathImg);
-path.velocityY = 4;
-
-
-//creating boy running
-boy = createSprite(70,330,20,20);
-boy.addAnimation("SahilRunning",boyImg);
-boy.scale=0.08;
+  track = createSprite(200,200);
+  track.addImage(trackImg)
   
   
-cashG=new Group();
-diamondsG=new Group();
-jwelleryG=new Group();
-swordGroup=new Group();
+  player = createSprite(100,150);
+  player.addImage("player",playerImg);
+  player.scale = 0.15;
+  
+  board = createSprite(400,50,100,50);
+  board.shapeColor = "white";
+  
+  gameOver = createSprite(300,200);
+  gameOver.addImage(gameOverImg);
+  
+  restart = createSprite(300,280);
+  restart.addImage(restartImg);
+  restart.scale = 0.2
+ 
+  maskaGroup = new Group();
+  glovesGroup = new Group();
+  handwasG = new Group();
+  virusG = new Group();
+  
+  
+ 
 
+  
+  
 }
 
 function draw() {
-
-  background(0);
-  boy.x = World.mouseX;
+  background("white");
+  //text("Score: "+ score, 400,50);
+  if(gameState === PLAY)
+{
   
-  edges= createEdgeSprites();
-  boy.collide(edges);
+  if(track.x<80){
+  track.x = track.width/2;
+}
+  track.velocityX = -3;
+  player.y = World.mouseY;
   
-  //code to reset the background
-  if(path.y > 400 ){
-    path.y = height/2;
+ restart.visible = false;
+  
+  mask();
+  gloves();
+  handwash();
+  virus();
+  
+  gameOver.visible = false;
+  
+ if(maskaGroup.isTouching(player)){
+    maskaGroup.destroyEach();
+   pointa.play();
+   score = score+5;
+  }
+  if(glovesGroup.isTouching(player)){
+    glovesGroup.destroyEach();
+    pointa.play();
+    score = score+10;
   }
   
-    createCash();
-    createDiamonds();
-    createJwellery();
-    createSword();
-
-    if (cashG.isTouching(boy)) {
-      cashG.destroyEach();
-      treasureCollection = treasureCollection+50;
-    }
-    else if (diamondsG.isTouching(boy)) {
-      diamondsG.destroyEach();
-      treasureCollection = treasureCollection+50;
-      
-    }else if(jwelleryG.isTouching(boy)) {
-      jwelleryG.destroyEach();
-      treasureCollection = treasureCollection+50;
-    }else{
-      if(swordGroup.isTouching(boy)) {
-        swordGroup.destroyEach();
-    }
+  if(handwasG.isTouching(player)){
+    handwasG.destroyEach();
+    pointa.play();
+    score = score+15;
   }
   
-  boy.setCollider("circle",20,20,40);
-  boy.debug = false
-  
-  if(swordGroup.isTouching(boy))
-  {
-   gameState=END;
-   boy.addAnimation("shilrunning",endIma) ;
-  }
-  else if (gameState === END) {
-      path.velocityY = 0;
+  if(virusG.isTouching(player)){
+     gameState = END;
+     gameoverSound.play();
+   }
+}
+   if(gameState===END){
+    track.velocityX=0;
+    virusG.setVelocityEach(0);
+    glovesGroup.setVelocityEach(0);
+    maskaGroup.setVelocityEach(0);
+    handwasG.setVelocityEach(0);
      
-     swordGroup.setVelocityYEach(0);
-  
-     cashG.setVelocityYEach(0);
+     restart.visible = true;
+     virusG.setLifetimeEach(-1);
      
-     jewelleryG.setvelocityYEach(0);
-     dimondG.setvelocityYEach(0);
+     gameOver.visible = true;
+     
+    
+    if(mousePressedOver(restart)) {
+      reset();
+    }
   }
+ 
+  
 
-  drawSprites();
-  textSize(20);
-  fill(255);
-  text("Treasure: "+ treasureCollection,150,30);
 
+ drawSprites()
+  
+ fill("black")
+ textSize(20);
+ text("Score: "+ score, 360,60);
+}
+   
+ 
+
+function mask(){
+  if(frameCount%80===0)
+ {
+    maska = createSprite(600,100);
+   maska.addImage(maskImg);
+   maska.scale = 0.15;
+    maska.velocityX = -3;
+   
+   maska.y = Math.round(random(100,300))
+   maskaGroup.add(maska);
+ }
+}
+function gloves(){
+ if(frameCount%80===0){
+ glovesa = createSprite(600,100);
+ glovesa.addImage(glovesImg);
+ glovesa.scale = 0.05;
+   
+ glovesa.velocityX = -3;
+   
+ glovesa.y = Math.round(random(100,300))
+   
+  glovesGroup.add(glovesa);
+ }
 }
 
-function createCash() {
-  if (World.frameCount % 50 == 0) {
-  var cash = createSprite(Math.round(random(50, 350),40, 10, 10));
-  cash.addImage(cashImg);
-  cash.scale=0.12;
-  cash.velocityY = 3;
-  cash.lifetime = 150;
-  cashG.add(cash);
+function handwash(){
+  if(frameCount%60===0){
+    handwas = createSprite(600,100);
+    handwas.addImage(handwasImg);
+    handwas.scale = 0.05;
+    handwas.velocityX = -3;
+    
+    handwas.y = Math.round(random(100,300))
+    handwasG.add(handwas);
   }
 }
-
-function createDiamonds() {
-  if (World.frameCount % 80 == 0) {
-  var diamonds = createSprite(Math.round(random(50, 350),40, 10, 10));
-  diamonds.addImage(diamondsImg);
-  diamonds.scale=0.03;
-  diamonds.velocityY = 3;
-  diamonds.lifetime = 150;
-  diamondsG.add(diamonds);
+ 
+function virus(){
+   if(frameCount%60===0)
+ {
+  virus19 = createSprite(600,100);
+  virus19.addImage(virusImg);
+  virus19.scale = 0.2;
+  virus19.velocityX = -8
+  virus19.lifetime  = 120;
+   
+  virusG.add(virus19); 
+   
+   virus19.y = Math.round(random(100,300))
+ }
 }
+function reset(){
+  gameState = PLAY;
+  
+  gameOver.visible = false;
+  restart.visible = false;
+  
+  maskaGroup.destroyEach();
+  glovesGroup .destroyEach();
+  handwasG.destroyEach();
+  virusG.destroyEach();
+  
+  score = 0;
+  
 }
-
-function createJwellery() {
-  if (World.frameCount % 80 == 0) {
-  var jwellery = createSprite(Math.round(random(50, 350),40, 10, 10));
-  jwellery.addImage(jwelleryImg);
-  jwellery.scale=0.13;
-  jwellery.velocityY = 3;
-  jwellery.lifetime = 150;
-  jwelleryG.add(jwellery);
-  }
-}
-
-function createSword(){
-  if (World.frameCount % 150 == 0) {
-  var sword = createSprite(Math.round(random(50, 350),40, 10, 10));
-  sword.addImage(swordImg);
-  sword.scale=0.1;
-  sword.velocityY = 3;
-  sword.lifetime = 150;
-  swordGroup.add(sword);
-  }
-}
+  
+  
